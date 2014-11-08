@@ -3,12 +3,14 @@ var fs = require('fs'),
     path = require('path'),
     nodeResolve = require('resolve'),
     start = require('../server.js'),
+    daemon = require('daemon'),
     opts = require('yargs')
       .options({
         'config': { alias: 'c' },
         'help': { alias: 'h' },
         'init': { },
         'show-config': { },
+        'daemon': { alias: 'd' },
         'version': { }
       }),
     argv = opts.parse(process.argv);
@@ -40,6 +42,22 @@ var config = require('../config.js'),
 if (argv['config']){
   configPath = nodeResolve.sync(argv.config, { basedir: process.cwd() });
   config = require(configPath);
+}
+
+if (argv['daemon'] || argv['d']) {
+  var daemon_opts = {},
+      logFile = (config.loggingOpts != null && 
+                 config.loggingOpts.filename != null ? config.loggingOpts.filename : '') || path.resolve(process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'] + './npm_lazy.log'),
+      fd,
+      child;
+
+  if (config.loggingOpts != null && config.loggingOpts.logToConsole != null && !!config.loggingOpts.logToConsole) {
+    //fd = fs.openSync(logFile)
+    daemon_opts.stdout = daemon_opts.stderr = null;
+  }
+  //console.log(process.env(''));
+  //daemon.daemon(__filename, )
+  process.exit();
 }
 
 if (argv['show-config']) {
