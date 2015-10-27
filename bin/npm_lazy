@@ -44,7 +44,7 @@ if (argv['config']){
   config = require(configPath);
 }
 
-if (argv['daemon'] || argv['d']) {
+if (argv['daemon'] || argv['d'] || config.daemonize) {
   var daemon_opts = {},
       logFile = (config.loggingOpts != null && 
                  config.loggingOpts.filename != null ? config.loggingOpts.filename : '') || path.resolve(process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'] + './npm_lazy.log'),
@@ -52,11 +52,15 @@ if (argv['daemon'] || argv['d']) {
       child;
 
   if (config.loggingOpts != null && config.loggingOpts.logToConsole != null && !!config.loggingOpts.logToConsole) {
-    //fd = fs.openSync(logFile)
-    daemon_opts.stdout = daemon_opts.stderr = null;
+    fd = fs.openSync(logFile, 'a');
+    daemon_opts.stdout = daemon_opts.stderr = fd;
   }
-  //console.log(process.env(''));
-  //daemon.daemon(__filename, )
+
+  child = daemon.daemon(__filename, [], daemon_opts);
+  // child.on('exit', function(c) {
+  //   fs.closeSync(fd);
+  // });
+  console.log('Daemonized, pid '+child.pid);
   process.exit();
 }
 
